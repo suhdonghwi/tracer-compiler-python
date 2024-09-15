@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     original_ast = ast.parse(input_content)
 
-    instrumented_ast = InstrumentationTransformer().visit(original_ast)
+    instrumented_ast = InstrumentationTransformer(original_ast).transform()
 
     print("=== Original AST ===")
     print(ast.unparse(original_ast))
