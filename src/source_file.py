@@ -1,10 +1,17 @@
+import ast
 from pathlib import Path
 from dataclasses import dataclass
+
 
 @dataclass
 class SourceFile:
     path: str
     content: str
+
+    def __init__(self, path: str, content: str):
+        self.path = path
+        self.content = content
+        self.ast = ast.parse(content)
 
     @classmethod
     def from_file(cls, path: str):
