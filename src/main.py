@@ -1,20 +1,39 @@
 import sys
 import ast
+import os
+from typing import List
 
+from source_file import SourceFile
 from transformer import InstrumentationTransformer
 
 
+def load_all_source_files(directory_path: str) -> List[SourceFile]:
+    source_files: List[SourceFile] = []
+
+    for root, _, files in os.walk(directory_path):
+        for file in files:
+            if file.endswith(".py"):
+                source_files.append(SourceFile(os.path.join(root, file)))
+
+    return source_files
+
+
 if __name__ == "__main__":
-    input_file = open(sys.argv[1], "r")
-    input_content = input_file.read()
+    input_path = sys.argv[1]
 
-    original_ast = ast.parse(input_content)
+    if os.path.isdir(input_path):
+        source_files = load_all_source_files(input_path)
+    else:
+        source_files = [SourceFile(input_path)]
 
-    instrumented_ast = InstrumentationTransformer(original_ast).transform()
+    print(source_files)
 
-    print("=== Original AST ===")
-    print(ast.unparse(original_ast))
-
-    print("=== Instrumented AST ===")
-    print(ast.unparse(instrumented_ast))
-
+    # original_ast = ast.parse(input_content)
+    #
+    # instrumented_ast = InstrumentationTransformer(original_ast).transform()
+    #
+    # print("=== Original AST ===")
+    # print(ast.unparse(original_ast))
+    #
+    # print("=== Instrumented AST ===")
+    # print(ast.unparse(instrumented_ast))
