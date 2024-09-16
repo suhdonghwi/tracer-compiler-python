@@ -2,10 +2,10 @@ import sys
 import ast
 import os
 from typing import List
-from id_mapped_source_files import IdMappedSourceFiles
 
 from source_file import SourceFile
 from transformer import InstrumentationTransformer
+from id_mapped_source_file import IdMappedSourceFile
 
 
 def load_all_source_files(directory_path: str) -> List[SourceFile]:
@@ -34,17 +34,15 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print(len(source_files), "source files found")
-    id_mapped_source_files = IdMappedSourceFiles(source_files)
+    id_mapped_source_files = [
+        IdMappedSourceFile(source_file) for source_file in source_files
+    ]
 
-    for source_file in source_files:
-        node_id_getter = id_mapped_source_files.get_node_id
-        instrumented_ast = InstrumentationTransformer(
-            source_file.ast, node_id_getter
-        ).transform()
+    for id_mapped_source_file in id_mapped_source_files:
+        print(
+            ast.unparse(InstrumentationTransformer(id_mapped_source_file).transform())
+        )
 
-        # print("Printing instrumented AST for file: ", source_file.path)
-        # print(ast.unparse(instrumented_ast))
-        # print("======================\n\n")
     # original_ast = ast.parse(input_content)
     #
     # instrumented_ast = InstrumentationTransformer(original_ast).transform()
