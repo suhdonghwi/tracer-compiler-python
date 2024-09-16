@@ -1,5 +1,4 @@
 import ast
-from typing import Union
 
 
 class LinearizedAST:
@@ -11,8 +10,13 @@ class LinearizedAST:
             self.node_to_index_dict[node] = len(self.linearized_ast)
             self.linearized_ast.append(node)
 
-    def node_of(self, index: int) -> Union[ast.AST, None]:
+    def node_of(self, index: int) -> ast.AST:
         return self.linearized_ast[index]
 
-    def index_of(self, node: ast.AST) -> Union[int, None]:
-        return self.node_to_index_dict.get(node)
+    def index_of(self, node: ast.AST) -> int:
+        index = self.node_to_index_dict.get(node)
+
+        if index is None:
+            raise ValueError("Node not found in linearized AST")
+
+        return index
