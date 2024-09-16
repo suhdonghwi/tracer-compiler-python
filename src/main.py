@@ -13,18 +13,24 @@ def load_all_source_files(directory_path: str) -> List[SourceFile]:
     for root, _, files in os.walk(directory_path):
         for file in files:
             if file.endswith(".py"):
-                source_files.append(SourceFile(os.path.join(root, file)))
+                path = os.path.join(root, file)
+                source_files.append(SourceFile.from_file(path))
 
     return source_files
 
 
 if __name__ == "__main__":
     input_path = sys.argv[1]
+    source_files = []
 
     if os.path.isdir(input_path):
         source_files = load_all_source_files(input_path)
-    else:
-        source_files = [SourceFile(input_path)]
+    elif os.path.isfile(input_path):
+        source_files = [SourceFile.from_file(input_path)]
+
+    if len(source_files) == 0:
+        print("Error: No source files found")
+        sys.exit(1)
 
     print(source_files)
 
