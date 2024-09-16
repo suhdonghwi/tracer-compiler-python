@@ -11,6 +11,7 @@ class IdMappedSourceFile:
     node_to_node_id: dict[ast.AST, NodeId] = {}
 
     def __init__(self, source_file: SourceFile):
+        self.original_source_file = source_file
         self.ast = ast.parse(source_file.content)
 
         for node in ast.walk(self.ast):
