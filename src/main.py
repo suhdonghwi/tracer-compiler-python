@@ -1,10 +1,10 @@
-import sys
 import ast
 import os
+import sys
 
-from source_file import SourceFile
 from id_mapped_source_file import IdMappedSourceFile
 from instrumentation_transformer import InstrumentationTransformer
+from source_file import SourceFile
 
 
 def get_py_files_inside_directory(directory_path: str) -> list[str]:

@@ -1,5 +1,5 @@
 import ast
-from uuid import uuid1, UUID
+from uuid import UUID, uuid1
 
 from source_file import SourceFile
 
