@@ -4,8 +4,8 @@ import os
 from typing import List
 
 from source_file import SourceFile
-from transformer import InstrumentationTransformer
 from id_mapped_source_file import IdMappedSourceFile
+from instrumentation_transformer import InstrumentationTransformer
 
 
 def load_all_source_files(directory_path: str) -> List[SourceFile]:
@@ -41,13 +41,3 @@ if __name__ == "__main__":
     for id_mapped_source_file in id_mapped_source_files:
         transformed_ast = InstrumentationTransformer(id_mapped_source_file).transform()
         print(ast.unparse(transformed_ast))
-
-    # original_ast = ast.parse(input_content)
-    #
-    # instrumented_ast = InstrumentationTransformer(original_ast).transform()
-    #
-    # print("=== Original AST ===")
-    # print(ast.unparse(original_ast))
-    #
-    # print("=== Instrumented AST ===")
-    # print(ast.unparse(instrumented_ast))
