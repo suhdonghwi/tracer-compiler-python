@@ -33,7 +33,13 @@ def wrap_with_expr_begin_end(node: ast.expr, arg: ast.AST) -> ast.Call:
     return end_call
 
 
-NON_INVOCATING_EXPR_TYPES = (
+# Invoking expression types are expression types that, when evaluated, may result in a function call, 
+# even if all their subexpressions are `ast.Constant`.
+
+# We maintain a list of non-invoking expression types, rather than invoking expression types,
+# because future Python versions may add new types of AST nodes.
+# It is safer to assume that new nodes are invoking expressions, because otherwise we may miss some nodes that should be wrapped.
+NON_INVOKING_EXPR_TYPES = (
     ast.Lambda,
     ast.IfExp,
     ast.Dict,
@@ -55,5 +61,5 @@ NON_INVOCATING_EXPR_TYPES = (
 )
 
 
-def is_invocating_expr(node: ast.expr) -> bool:
-    return not isinstance(node, NON_INVOCATING_EXPR_TYPES)
+def is_invoking_expr(node: ast.expr) -> bool:
+    return not isinstance(node, NON_INVOKING_EXPR_TYPES)

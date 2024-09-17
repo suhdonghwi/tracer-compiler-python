@@ -1,7 +1,4 @@
-def fib(n):
-    a, b = 0, 1
-    while a < n:
-        print(a, end=' ')
-        a, b = b, a+b
+import ast
 
-    return a
+def fib(n: ast.AST) -> ast.AST:
+    return n
