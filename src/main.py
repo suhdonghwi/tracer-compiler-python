@@ -1,36 +1,40 @@
 import sys
 import ast
 import os
-from typing import List
 
 from source_file import SourceFile
 from id_mapped_source_file import IdMappedSourceFile
 from instrumentation_transformer import InstrumentationTransformer
 
 
-def load_all_source_files(directory_path: str) -> List[SourceFile]:
-    source_files: List[SourceFile] = []
+def get_py_files_inside_directory(directory_path: str) -> list[str]:
+    paths: list[str] = []
 
     for root, _, files in os.walk(directory_path):
         for file in files:
             if file.endswith(".py"):
                 path = os.path.join(root, file)
-                source_files.append(SourceFile.from_file(path))
+                paths.append(path)
 
-    return source_files
+    return paths
 
 
 if __name__ == "__main__":
     input_path = sys.argv[1]
-    source_files = []
+    source_file_paths = []
 
     if os.path.isdir(input_path):
-        source_files = load_all_source_files(input_path)
+        source_file_paths = get_py_files_inside_directory(input_path)
     elif os.path.isfile(input_path):
-        source_files = [SourceFile.from_file(input_path)]
+        source_file_paths = [input_path]
+
+    source_files = [
+        SourceFile.from_path(source_file_path)
+        for source_file_path in source_file_paths
+    ]
 
     if len(source_files) == 0:
-        print("Error: No source files found")
+        print("no source files found")
         sys.exit(1)
 
     print(len(source_files), "source files found")
@@ -40,4 +44,4 @@ if __name__ == "__main__":
 
     for id_mapped_source_file in id_mapped_source_files:
         transformed_ast = InstrumentationTransformer(id_mapped_source_file).transform()
-        # print(ast.unparse(transformed_ast))
+        print(ast.unparse(transformed_ast))
