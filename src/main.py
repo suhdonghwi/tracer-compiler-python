@@ -40,4 +40,4 @@ if __name__ == "__main__":
 
     for id_mapped_source_file in id_mapped_source_files:
         transformed_ast = InstrumentationTransformer(id_mapped_source_file).transform()
-        print(ast.unparse(transformed_ast))
+        # print(ast.unparse(transformed_ast))

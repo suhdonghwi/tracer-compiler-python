@@ -1,10 +1,9 @@
 import ast
+from uuid import UUID
 
-from id_mapped_source_file import NodeId
 
-
-def make_id_node(node_id: NodeId) -> ast.Constant:
-    return ast.Constant(value=str(node_id))
+def make_uuid_node(uuid: UUID) -> ast.Constant:
+    return ast.Constant(value=str(uuid))
 
 
 def make_marking_call(method_name: str, *args: ast.AST) -> ast.Call:
@@ -19,19 +18,17 @@ def make_marking_call(method_name: str, *args: ast.AST) -> ast.Call:
     )
 
 
-def wrap_with_frame_begin_end(body: list[ast.stmt], parent_node_id: NodeId) -> ast.Try:
-    id_node = make_id_node(parent_node_id)
-
+def wrap_with_frame_begin_end(body: list[ast.stmt], *args: ast.AST) -> ast.Try:
     return ast.Try(
-        body=[ast.Expr(make_marking_call("begin_frame", id_node))] + body,
+        body=[ast.Expr(make_marking_call("begin_frame", *args))] + body,
         handlers=[],
         orelse=[],
-        finalbody=[ast.Expr(make_marking_call("end_frame", id_node))],
+        finalbody=[ast.Expr(make_marking_call("end_frame", *args))],
     )
 
 
-def wrap_with_expr_begin_end(node: ast.expr, node_id: NodeId) -> ast.Call:
-    begin_call = make_marking_call("begin_expr", make_id_node(node_id))
+def wrap_with_expr_begin_end(node: ast.expr, arg: ast.AST) -> ast.Call:
+    begin_call = make_marking_call("begin_expr", arg)
     end_call = make_marking_call("end_expr", begin_call, node)
     return end_call
 
