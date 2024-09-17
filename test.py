@@ -1,4 +1,3 @@
-import ast
-
-def fib(n: ast.AST) -> ast.AST:
-    return n
+def fib():
+    return 1
+    return 1
