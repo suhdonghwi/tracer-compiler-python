@@ -1,4 +1,6 @@
 import ast
+import json
+from typing import Tuple
 from uuid import UUID, uuid1
 
 from source_file import SourceFile
@@ -26,3 +28,32 @@ class IdMappedSourceFile:
             raise ValueError("Node not found in mapped source files")
 
         return node_id
+
+    def dumps(self):
+        node_id_to_range: dict[NodeId, Tuple[int, int]] = {}
+
+        for node_id, node in self.node_id_to_node.items():
+            if isinstance(node, ast.Module):
+                node_id_to_range[node_id] = (
+                    0,
+                    len(self.original_source_file.content),
+                )
+
+            if isinstance(node, (ast.stmt, ast.expr)):
+                if node.end_col_offset is None:
+                    raise ValueError("Node has no end_col_offset")
+
+                node_id_to_range[node_id] = (node.col_offset, node.end_col_offset)
+
+        node_id_to_range_json_dict = {
+            str(node_id): (start, end)
+            for node_id, (start, end) in node_id_to_range.items()
+        }
+
+        data = {
+            "path": self.original_source_file.path,
+            "content": self.original_source_file.content,
+            "node_id_to_range": node_id_to_range_json_dict,
+        }
+
+        return json.dumps(data, indent=2)
