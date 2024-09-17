@@ -33,7 +33,7 @@ def wrap_with_expr_begin_end(node: ast.expr, arg: ast.AST) -> ast.Call:
     return end_call
 
 
-# Invoking expression types are expression types that, when evaluated, may result in a function call, 
+# Invoking expression types are expression types that, when evaluated, may result in a function call,
 # even if all their subexpressions are `ast.Constant`.
 
 # We maintain a list of non-invoking expression types, rather than invoking expression types,
@@ -63,3 +63,35 @@ NON_INVOKING_EXPR_TYPES = (
 
 def is_invoking_expr(node: ast.expr) -> bool:
     return not isinstance(node, NON_INVOKING_EXPR_TYPES)
+
+
+# Invoking statement types are statement types that, when executed, may result in either of the following:
+# - Breaking out of the current frame or loop
+# - Importing a module
+# - Executing a function
+# - Raising an exception
+# even if all their substatements are `ast.Pass` and all their subexpressions are `ast.Constant`.
+
+# We maintain a list of non-invoking statement types, rather than invoking statement types,
+# for the same reason as for invoking expressions.
+NON_INVOKING_STMT_TYPES = (
+    ast.FunctionDef,
+    ast.AsyncFunctionDef,
+    ast.ClassDef,
+    ast.For,
+    ast.AsyncFor,
+    ast.While,
+    ast.If,
+    ast.With,
+    ast.AsyncWith,
+    ast.Try,
+    ast.Global,
+    ast.Nonlocal,
+    ast.Pass,
+    # ast.Match,
+    # ast.TypeAlias,
+    # ast.TryStar,
+)
+
+def is_invoking_stmt(node: ast.stmt) -> bool:
+    return not isinstance(node, NON_INVOKING_STMT_TYPES)

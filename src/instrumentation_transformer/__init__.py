@@ -3,6 +3,7 @@ import ast
 from id_mapped_source_file import IdMappedSourceFile
 from instrumentation_transformer.ast_utils import (
     is_invoking_expr,
+    is_invoking_stmt,
     make_marking_call,
     make_uuid_node,
     wrap_with_expr_begin_end,
@@ -40,7 +41,7 @@ class InstrumentationTransformer(ast.NodeTransformer):
                 type_params=node.type_params if hasattr(node, "type_params") else [],  # type: ignore
             )
 
-        elif isinstance(node, ast.stmt):
+        elif isinstance(node, ast.stmt) and is_invoking_stmt(node):
             self.generic_visit(node)
             return ast.Try(
                 body=[
