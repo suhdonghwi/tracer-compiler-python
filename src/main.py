@@ -1,11 +1,10 @@
 import ast
-import json
 import os
 import sys
-from typing import Tuple
 
 from instrumentation_transformer import InstrumentationTransformer
-from node_id_mapped_ast import NodeId, NodeIdMappedAST
+from location_map import make_location_map_json
+from node_id_mapped_ast import NodeIdMappedAST
 from source_file import SourceFile
 
 
@@ -21,56 +20,38 @@ def get_py_files_inside_directory(directory_path: str) -> list[str]:
     return paths
 
 
-def make_location_map(source_file: SourceFile, node_id_mapped_ast: NodeIdMappedAST):
-    node_id_to_range: dict[NodeId, Tuple[int, int]] = {}
+def construct_import_from_node(
+    start_path: str, import_target_path: str, name_to_import: str
+):
+    relative_path = os.path.relpath(import_target_path, os.path.dirname(start_path))
+    relative_path_parts = relative_path.split(os.sep)
 
-    for node_id, node in node_id_mapped_ast.items():
-        if isinstance(node, ast.Module):
-            node_id_to_range[node_id] = (0, len(source_file.content))
-        elif isinstance(node, (ast.stmt, ast.expr)):
-            if node.end_col_offset is None:
-                raise ValueError("Node has no end_col_offset")
+    parent_dir_count = relative_path_parts.count("..")
 
-            node_id_to_range[node_id] = (node.col_offset, node.end_col_offset)
+    level = parent_dir_count + 1
+    module_name = ".".join(relative_path_parts[parent_dir_count:]).rsplit(".py", 1)[0]
 
-    node_id_to_range_json_dict = {
-        str(node_id): (start, end) for node_id, (start, end) in node_id_to_range.items()
-    }
-
-    return json.dumps({
-        "path": source_file.path,
-        "content": source_file.content,
-        "node_id_to_range": node_id_to_range_json_dict,
-    })
+    return ast.ImportFrom(
+        module=module_name,
+        names=[ast.alias(name=name_to_import, asname=None)],
+        level=level,
+    )
 
 
 if __name__ == "__main__":
     input_path = sys.argv[1]
-    source_file_paths = []
+    output_path = sys.argv[2]
+    tracer_module_path = sys.argv[3]
 
-    if os.path.isdir(input_path):
-        source_file_paths = get_py_files_inside_directory(input_path)
-    elif os.path.isfile(input_path):
-        source_file_paths = [input_path]
+    source_file = SourceFile.from_path(input_path)
 
-    source_files = [
-        SourceFile.from_path(source_file_path) for source_file_path in source_file_paths
-    ]
+    raw_ast = ast.parse(source_file.content)
+    node_id_mapped_ast = NodeIdMappedAST(raw_ast)
+    transformed_ast = InstrumentationTransformer(node_id_mapped_ast).transform()
 
-    if len(source_files) == 0:
-        print("no source files found")
-        sys.exit(1)
+    location_map_json = make_location_map_json(source_file, node_id_mapped_ast)
 
-    print(len(source_files), "source files found")
-    location_maps: list[str] = []
-
-    for source_file in source_files:
-        raw_ast = ast.parse(source_file.content)
-        node_id_mapped_ast = NodeIdMappedAST(raw_ast)
-        transformed_ast = InstrumentationTransformer(node_id_mapped_ast).transform()
-
-        location_map = make_location_map(source_file, node_id_mapped_ast)
-        location_maps.append(location_map)
-
-    print(location_maps)
-        # print(source_file.path)
+    constructed_import_from_node = construct_import_from_node(
+        output_path, tracer_module_path, "__tracer__"
+    )
+    print(ast.unparse(constructed_import_from_node))

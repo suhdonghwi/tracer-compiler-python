@@ -17,7 +17,9 @@ class InstrumentationTransformer(ast.NodeTransformer):
         self.node_id_mapped_ast = node_id_mapped_ast
 
     def transform(self):
-        return ast.fix_missing_locations(self.visit(self.node_id_mapped_ast.raw_ast))
+        return ast.fix_missing_locations(
+            typing.cast(ast.Module, self.visit(self.node_id_mapped_ast.raw_ast))
+        )
 
     def visit(self, node: ast.AST) -> ast.AST:
         node_id = self.node_id_mapped_ast.get_node_id(node)

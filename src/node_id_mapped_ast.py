@@ -8,7 +8,7 @@ class NodeIdMappedAST:
     node_id_to_node: dict[NodeId, ast.AST] = {}
     node_to_node_id: dict[ast.AST, NodeId] = {}
 
-    def __init__(self, input_ast: ast.AST):
+    def __init__(self, input_ast: ast.Module):
         self.raw_ast = input_ast
 
         for node in ast.walk(self.raw_ast):
