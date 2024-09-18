@@ -1,12 +1,11 @@
 import ast
-import json
 from typing import Tuple
 
 from node_id_mapped_ast import NodeId, NodeIdMappedAST
 from source_file import SourceFile
 
 
-def make_location_map_json(source_file: SourceFile, node_id_mapped_ast: NodeIdMappedAST):
+def make_location_map(source_file: SourceFile, node_id_mapped_ast: NodeIdMappedAST):
     node_id_to_range: dict[NodeId, Tuple[int, int]] = {}
 
     for node_id, node in node_id_mapped_ast.items():
@@ -22,4 +21,4 @@ def make_location_map_json(source_file: SourceFile, node_id_mapped_ast: NodeIdMa
         str(node_id): (start, end) for node_id, (start, end) in node_id_to_range.items()
     }
 
-    return json.dumps(node_id_to_range_json_dict)
+    return node_id_to_range_json_dict

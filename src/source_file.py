@@ -12,5 +12,5 @@ class SourceFile:
         self.content = content
 
     @classmethod
-    def from_path(cls, path: str):
+    def from_path(cls, path: Path):
         return cls(path=path, content=Path(path).read_text())
