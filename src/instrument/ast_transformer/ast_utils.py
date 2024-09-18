@@ -1,9 +1,4 @@
 import ast
-from uuid import UUID
-
-
-def make_uuid_node(uuid: UUID) -> ast.Constant:
-    return ast.Constant(value=str(uuid))
 
 
 def make_marking_call(method_name: str, *args: ast.AST) -> ast.Call:

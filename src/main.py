@@ -2,15 +2,13 @@ import ast
 import os
 import sys
 from pathlib import Path
+from instrument import instrument_source_file
 
 from utils.file_processing import (
     clear_directory,
     get_files_inside_directory,
     write_to_ensured_path,
 )
-from instrumentation_transformer import InstrumentationTransformer
-from location_map import make_location_map
-from node_id_mapped_ast import NodeIdMappedAST
 from source_file import SourceFile
 
 
@@ -30,18 +28,6 @@ def construct_import_from_node(
         names=[ast.alias(name=name_to_import, asname=None)],
         level=level,
     )
-
-
-def process_source_file(source_file: SourceFile):
-    raw_ast = ast.parse(source_file.content)
-    node_id_mapped_ast = NodeIdMappedAST(raw_ast)
-
-    instrumented_ast = InstrumentationTransformer(node_id_mapped_ast).transform()
-    instrumented_code = ast.unparse(instrumented_ast)
-
-    location_map = make_location_map(source_file, node_id_mapped_ast)
-
-    return instrumented_code, location_map
 
 
 if __name__ == "__main__":
@@ -77,6 +63,6 @@ if __name__ == "__main__":
             continue
 
         source_file = SourceFile.from_path(source_file_path)
-        instrumented_code, location_map = process_source_file(source_file)
+        instrumented_code, location_map = instrument_source_file(source_file)
 
         write_to_ensured_path(destination_path, instrumented_code)

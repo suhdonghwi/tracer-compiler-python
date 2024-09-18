@@ -1,8 +1,9 @@
 import ast
 from typing import Tuple
 
-from node_id_mapped_ast import NodeId, NodeIdMappedAST
 from source_file import SourceFile
+
+from .node_id_mapped_ast import NodeId, NodeIdMappedAST
 
 
 def make_location_map(source_file: SourceFile, node_id_mapped_ast: NodeIdMappedAST):

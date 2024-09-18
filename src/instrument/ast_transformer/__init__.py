@@ -1,23 +1,24 @@
 import ast
-from typing import overload
+from typing import Callable, overload
 
-from instrumentation_transformer.ast_utils import (
+from .ast_utils import (
     is_invoking_expr,
     is_invoking_stmt,
-    make_uuid_node,
     wrap_with_expr_begin_end,
     wrap_with_frame_begin_end,
     wrap_with_stmt_begin_end,
 )
-from node_id_mapped_ast import NodeIdMappedAST
 
 
 class InstrumentationTransformer(ast.NodeTransformer):
-    def __init__(self, node_id_mapped_ast: NodeIdMappedAST):
-        self.node_id_mapped_ast = node_id_mapped_ast
+    def __init__(
+        self, target_ast: ast.Module, node_id_getter: Callable[[ast.AST], str]
+    ):
+        self.target_ast = target_ast
+        self.node_id_getter = node_id_getter
 
-    def transform(self):
-        return ast.fix_missing_locations(self.visit(self.node_id_mapped_ast.raw_ast))
+    def transform(self) -> ast.Module:
+        return ast.fix_missing_locations(self.visit(self.target_ast))
 
     @overload
     def visit(self, node: ast.expr) -> ast.expr:
@@ -36,8 +37,8 @@ class InstrumentationTransformer(ast.NodeTransformer):
         ...
 
     def visit(self, node: ast.AST) -> ast.AST:
-        node_id = self.node_id_mapped_ast.get_node_id(node)
-        node_id_node = make_uuid_node(node_id)
+        node_id = self.node_id_getter(node)
+        node_id_node = ast.Constant(value=node_id)
 
         if isinstance(node, ast.FunctionDef):
             node.body = list(map(self.visit, node.body))
