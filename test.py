@@ -1,3 +1,2 @@
-def fib():
-    return 1
-    return 1
+
+self.a += 10

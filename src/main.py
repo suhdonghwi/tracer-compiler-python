@@ -3,7 +3,11 @@ import os
 import sys
 from pathlib import Path
 
-from file_processing import clear_directory, get_source_dest_pairs, write_to_path
+from utils.file_processing import (
+    clear_directory,
+    get_files_inside_directory,
+    write_to_ensured_path,
+)
 from instrumentation_transformer import InstrumentationTransformer
 from location_map import make_location_map
 from node_id_mapped_ast import NodeIdMappedAST
@@ -48,10 +52,19 @@ if __name__ == "__main__":
     input_path = Path(sys.argv[1])
     output_directory_path = Path(sys.argv[2])
 
-    if not output_directory_path.exists():
-        output_directory_path.mkdir(parents=True, exist_ok=True)
+    source_dest_pairs = []
 
-    source_dest_pairs = get_source_dest_pairs(input_path, output_directory_path)
+    if input_path.is_file():
+        source_dest_pairs = [(input_path, output_directory_path / input_path.name)]
+    elif input_path.is_dir():
+        files_inside_input_directory = get_files_inside_directory(input_path)
+        source_dest_pairs = [
+            (
+                file_path,
+                output_directory_path / file_path.relative_to(input_path),
+            )
+            for file_path in files_inside_input_directory
+        ]
 
     if len(source_dest_pairs) == 0:
         print("No source files found")
@@ -60,7 +73,10 @@ if __name__ == "__main__":
     clear_directory(output_directory_path)
 
     for source_file_path, destination_path in source_dest_pairs:
+        if source_file_path.suffix != ".py":
+            continue
+
         source_file = SourceFile.from_path(source_file_path)
         instrumented_code, location_map = process_source_file(source_file)
 
-        write_to_path(destination_path, instrumented_code)
+        write_to_ensured_path(destination_path, instrumented_code)

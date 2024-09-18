@@ -27,6 +27,15 @@ def wrap_with_frame_begin_end(body: list[ast.stmt], *args: ast.AST) -> ast.Try:
     )
 
 
+def wrap_with_stmt_begin_end(node: ast.stmt, *args: ast.AST) -> ast.Try:
+    return ast.Try(
+        body=[ast.Expr(make_marking_call("begin_stmt", *args)), node],
+        handlers=[],
+        orelse=[],
+        finalbody=[ast.Expr(make_marking_call("end_stmt", *args))],
+    )
+
+
 def wrap_with_expr_begin_end(node: ast.expr, arg: ast.AST) -> ast.Call:
     begin_call = make_marking_call("begin_expr", arg)
     end_call = make_marking_call("end_expr", begin_call, node)
@@ -92,6 +101,7 @@ NON_INVOKING_STMT_TYPES = (
     # ast.TypeAlias,
     # ast.TryStar,
 )
+
 
 def is_invoking_stmt(node: ast.stmt) -> bool:
     return not isinstance(node, NON_INVOKING_STMT_TYPES)
