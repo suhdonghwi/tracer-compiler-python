@@ -8,12 +8,12 @@ from .tracer_metadata import make_tracer_metadata_json
 
 
 def instrument_code(
-    code: str,
+    source_code: str,
     source_path: Path,
     destination_path: Path,
     tracer_module_path: Path,
 ):
-    raw_ast = ast.parse(code)
+    raw_ast = ast.parse(source_code)
     node_id_mapping = NodeIdMapping(raw_ast)
 
     instrumented_ast = InstrumentationTransformer(
@@ -29,6 +29,6 @@ def instrument_code(
     )
 
     instrumented_code = ast.unparse(instrumented_ast)
-    metadata_json = make_tracer_metadata_json(code, source_path, node_id_mapping)
+    metadata_json = make_tracer_metadata_json(source_code, source_path, node_id_mapping)
 
     return instrumented_code, metadata_json

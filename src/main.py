@@ -1,6 +1,6 @@
+import shutil
 import sys
 from pathlib import Path
-import shutil
 
 from instrument import instrument_code
 from utils.file_processing import (
@@ -37,7 +37,9 @@ def get_source_dest_pairs(input_path: Path, output_directory_path: Path):
 def copy_tracer_module(output_directory_path: Path) -> Path:
     source_tracer_module_path = Path(__file__).parent / "source_tracer_module.py"
     dest_tracer_module_path = output_directory_path / "__tracer__.py"
+
     shutil.copy(source_tracer_module_path, dest_tracer_module_path)
+
     return dest_tracer_module_path
 
 
@@ -58,7 +60,7 @@ if __name__ == "__main__":
     print(f"Found {len(source_dest_pairs)} source files")
 
     clear_directory(output_directory_path)
-    dest_tracer_module_path = copy_tracer_module(output_directory_path)
+    tracer_module_path = copy_tracer_module(output_directory_path)
 
     for source_path, destination_path in source_dest_pairs:
         if source_path.suffix != ".py":
@@ -71,7 +73,7 @@ if __name__ == "__main__":
             source_code,
             source_path,
             destination_path,
-            dest_tracer_module_path,
+            tracer_module_path,
         )
 
         write_to_ensured_path(destination_path, instrumented_code)

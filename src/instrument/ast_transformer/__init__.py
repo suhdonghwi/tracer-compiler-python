@@ -45,6 +45,10 @@ class InstrumentationTransformer(ast.NodeTransformer):
         if isinstance(node, ast.FunctionDef):
             node.body = list(map(self.visit, node.body))
             return node
+        
+        elif isinstance(node, ast.ClassDef):
+            node.body = list(map(self.visit, node.body))
+            return node
 
         elif isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load):
             return node
