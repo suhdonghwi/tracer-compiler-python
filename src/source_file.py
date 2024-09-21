@@ -4,10 +4,10 @@ from pathlib import Path
 
 @dataclass
 class SourceFile:
-    path: str
+    path: Path
     content: str
 
-    def __init__(self, path: str, content: str):
+    def __init__(self, path: Path, content: str):
         self.path = path
         self.content = content
 

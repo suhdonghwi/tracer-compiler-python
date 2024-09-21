@@ -1,9 +1,11 @@
 import shutil
 from pathlib import Path
 
-
 def get_files_inside_directory(directory_path: Path) -> list[Path]:
-    return [path for path in directory_path.rglob("*") if path.is_file()]
+    return [
+        path for path in directory_path.rglob("*") 
+        if path.is_file() and "__pycache__" not in path.parts
+    ]
 
 
 def clear_directory(directory_path: Path):

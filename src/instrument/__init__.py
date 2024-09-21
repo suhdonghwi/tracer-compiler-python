@@ -4,7 +4,7 @@ from source_file import SourceFile
 
 from .node_id_mapped_ast import NodeIdMappedAST
 from .ast_transformer import InstrumentationTransformer
-from .location_map import make_location_map
+from .tracer_metadata import make_tracer_metadata_json
 
 
 def instrument_source_file(source_file: SourceFile):
@@ -16,6 +16,6 @@ def instrument_source_file(source_file: SourceFile):
     ).transform()
     instrumented_code = ast.unparse(instrumented_ast)
 
-    location_map = make_location_map(source_file, node_id_mapped_ast)
+    metadata_json = make_tracer_metadata_json(source_file, node_id_mapped_ast)
 
-    return instrumented_code, location_map
+    return instrumented_code, metadata_json
