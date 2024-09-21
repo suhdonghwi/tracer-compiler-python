@@ -12,7 +12,9 @@ from .ast_utils import (
 
 class InstrumentationTransformer(ast.NodeTransformer):
     def __init__(
-        self, target_ast: ast.Module, node_id_getter: Callable[[ast.AST], str]
+        self,
+        target_ast: ast.Module,
+        node_id_getter: Callable[[ast.AST], str],
     ):
         self.target_ast = target_ast
         self.node_id_getter = node_id_getter

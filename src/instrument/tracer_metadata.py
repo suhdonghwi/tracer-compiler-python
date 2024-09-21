@@ -1,20 +1,21 @@
 import ast
 import json
+from pathlib import Path
 from typing import Any
-
-from source_file import SourceFile
 
 from .node_id_mapped_ast import NodeIdMappedAST
 
 
-def make_tracer_metadata_json(source_file: SourceFile, node_id_mapped_ast: NodeIdMappedAST):
+def make_tracer_metadata_json(
+    path: Path, original_code: str, node_id_mapped_ast: NodeIdMappedAST
+):
     node_mappings: dict[str, Any] = {}
 
     for node_id, node in node_id_mapped_ast.items():
         if isinstance(node, ast.Module):
             node_mappings[str(node_id)] = {
                 "begin_offset": 0,
-                "end_offset": len(source_file.content),
+                "end_offset": len(original_code),
             }
 
         elif isinstance(node, (ast.stmt, ast.expr)):
@@ -27,8 +28,8 @@ def make_tracer_metadata_json(source_file: SourceFile, node_id_mapped_ast: NodeI
             }
 
     tracer_metadata = {
-        "path": source_file.path.as_posix(),
-        "content": source_file.content,
+        "path": path.as_posix(),
+        "original_code": original_code,
         "node_mappings": node_mappings,
     }
 

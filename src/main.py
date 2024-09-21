@@ -1,8 +1,7 @@
 import sys
 from pathlib import Path
 
-from instrument import instrument_source_file
-from source_file import SourceFile
+from instrument import instrument_code
 from utils.file_processing import (
     clear_directory,
     get_files_inside_directory,
@@ -51,8 +50,13 @@ if __name__ == "__main__":
 
         print(f"Processing {source_file_path}")
 
-        source_file = SourceFile.from_path(source_file_path)
-        instrumented_code, metadata_json = instrument_source_file(source_file)
+        source_code = source_file_path.read_text()
+        instrumented_code, metadata_json = instrument_code(
+            source_code,
+            source_file_path,
+            destination_path,
+            output_directory_path / Path("__tracer__.py"),
+        )
 
         write_to_ensured_path(destination_path, instrumented_code)
         write_to_ensured_path(
