@@ -4,14 +4,12 @@ from uuid import UUID, uuid1
 NodeId = UUID
 
 
-class NodeIdMappedAST:
+class NodeIdMapping:
     node_id_to_node: dict[NodeId, ast.AST] = {}
     node_to_node_id: dict[ast.AST, NodeId] = {}
 
-    def __init__(self, input_ast: ast.Module):
-        self.raw_ast = input_ast
-
-        for node in ast.walk(self.raw_ast):
+    def __init__(self, module_ast: ast.Module):
+        for node in ast.walk(module_ast):
             node_id = uuid1()
             self.node_id_to_node[node_id] = node
             self.node_to_node_id[node] = node_id

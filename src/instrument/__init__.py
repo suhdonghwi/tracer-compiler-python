@@ -1,45 +1,41 @@
 import ast
 from pathlib import Path
 
-from .node_id_mapped_ast import NodeIdMappedAST
+from .node_id_mapping import NodeIdMapping
 from .ast_transformer import InstrumentationTransformer
 from .tracer_metadata import make_tracer_metadata_json
 
 
 def instrument_code(
     code: str,
-    source_file_path: Path,
+    source_path: Path,
     destination_path: Path,
     tracer_module_path: Path,
 ):
     raw_ast = ast.parse(code)
-    node_id_mapped_ast = NodeIdMappedAST(raw_ast)
+    node_id_mapping = NodeIdMapping(raw_ast)
 
     instrumented_ast = InstrumentationTransformer(
         raw_ast,
-        lambda node: str(node_id_mapped_ast.get_node_id(node)),
+        lambda node: str(node_id_mapping.get_node_id(node)),
     ).transform()
 
-    instrumented_ast.body.insert(
-        0,
-        construct_import_from_node(destination_path, tracer_module_path, "__tracer__"),
-    )
+    instrumented_ast.body = [
+        make_tracer_module_import_node(
+            destination_path, tracer_module_path, "__tracer__"
+        )
+    ] + instrumented_ast.body
 
     instrumented_code = ast.unparse(instrumented_ast)
-    metadata_json = make_tracer_metadata_json(
-        source_file_path, code, node_id_mapped_ast
-    )
+    metadata_json = make_tracer_metadata_json(code, source_path, node_id_mapping)
 
     return instrumented_code, metadata_json
 
 
-def construct_import_from_node(
-    start_path: Path, import_target_path: Path, name_to_import: str
+def make_tracer_module_import_node(
+    importer_path: Path, import_target_path: Path, identifier: str
 ):
-    print(start_path)
-    print(import_target_path)
-    start_path = start_path.parent
-    relative_path = relpath(import_target_path, start_path)
+    relative_path = relative_walk_up(import_target_path, importer_path.parent)
     relative_path_parts = relative_path.parts
 
     parent_dir_count = sum(1 for part in relative_path_parts if part == "..")
@@ -49,18 +45,24 @@ def construct_import_from_node(
 
     return ast.ImportFrom(
         module=module_name,
-        names=[ast.alias(name=name_to_import, asname=None)],
+        names=[ast.alias(name=identifier, asname=None)],
         level=level,
     )
 
 
-def relpath(path_to: Path, path_from: Path):
-    path_to = Path(path_to).resolve()
-    path_from = Path(path_from).resolve()
+# pathlib relative_to method does not support walk_up option under Python 3.12
+def relative_walk_up(path: Path, base: Path) -> Path:
+    common_path = Path(*base.parts)
+    while common_path not in path.parents and len(common_path.parts) > 0:
+        common_path = common_path.parent
 
-    try:
-        for p in (*reversed(path_from.parents), path_from):
-            head, tail = p, path_to.relative_to(p)
-    except ValueError:  # Stop when the paths diverge.
-        pass
-    return Path("../" * (len(path_from.parents) - len(head.parents))).joinpath(tail)
+    if common_path == Path("/"):
+        raise ValueError(f"Cannot find a relative path from {path} to {base}")
+
+    # Number of `..` required to reach the common path
+    up_steps = len(base.parts) - len(common_path.parts)
+
+    # Calculate the relative path from the common base
+    relative_path = Path(*[".."] * up_steps) / path.relative_to(common_path)
+
+    return relative_path
