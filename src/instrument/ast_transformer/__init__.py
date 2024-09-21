@@ -55,6 +55,9 @@ class InstrumentationTransformer(ast.NodeTransformer):
 
         self.generic_visit(node)
 
+        if isinstance(node, ast.Slice):
+            return node
+
         if isinstance(node, ast.Module):
             node.body = [wrap_with_frame_begin_end(node.body, node_id_node)]
             return node

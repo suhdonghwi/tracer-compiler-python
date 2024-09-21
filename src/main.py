@@ -46,9 +46,10 @@ if __name__ == "__main__":
     clear_directory(output_directory_path)
 
     for source_file_path, destination_path in source_dest_pairs:
-        print(f"Processing {source_file_path}")
         if source_file_path.suffix != ".py":
             continue
+
+        print(f"Processing {source_file_path}")
 
         source_file = SourceFile.from_path(source_file_path)
         instrumented_code, metadata_json = instrument_source_file(source_file)
