@@ -7,9 +7,7 @@ from .node_id_mapping import NodeIdMapping
 
 
 def make_tracer_metadata_json(
-    original_code: str,
-    path: Path,
-    node_id_mapping: NodeIdMapping
+    original_code: str, path: Path, node_id_mapping: NodeIdMapping
 ):
     node_mappings: dict[str, Any] = {}
 
@@ -35,4 +33,4 @@ def make_tracer_metadata_json(
         "node_mappings": node_mappings,
     }
 
-    return json.dumps(tracer_metadata, indent=2)
+    return json.dumps(tracer_metadata)
