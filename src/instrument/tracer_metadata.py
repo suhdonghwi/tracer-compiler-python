@@ -33,4 +33,4 @@ def make_tracer_metadata_json(
         "node_mappings": node_mappings,
     }
 
-    return json.dumps(tracer_metadata)
+    return json.dumps(tracer_metadata, indent=2)
