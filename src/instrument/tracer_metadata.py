@@ -11,6 +11,12 @@ def make_tracer_metadata_json(
 ):
     node_mappings: dict[str, Any] = {}
 
+    lines = original_code.splitlines(keepends=True)
+    cumulative_line_lengths = [0]
+
+    for line in lines:
+        cumulative_line_lengths.append(cumulative_line_lengths[-1] + len(line))
+
     for node_id, node in node_id_mapping.items():
         if isinstance(node, ast.Module):
             node_mappings[str(node_id)] = {
@@ -19,12 +25,19 @@ def make_tracer_metadata_json(
             }
 
         elif isinstance(node, (ast.stmt, ast.expr)):
-            if node.end_col_offset is None:
-                raise ValueError("Node has no end_col_offset")
+            if node.end_lineno is None or node.end_col_offset is None:
+                raise ValueError(
+                    "Node is missing end line or end column offset information"
+                )
+
+            begin_offset = cumulative_line_lengths[node.lineno - 1] + node.col_offset
+            end_offset = (
+                cumulative_line_lengths[node.end_lineno - 1] + node.end_col_offset
+            )
 
             node_mappings[str(node_id)] = {
-                "begin_offset": node.col_offset,
-                "end_offset": node.end_col_offset,
+                "begin_offset": begin_offset,
+                "end_offset": end_offset,
             }
 
     tracer_metadata = {
