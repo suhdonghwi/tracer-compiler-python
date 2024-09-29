@@ -5,7 +5,7 @@ from uuid import uuid1
 from dataclasses import dataclass
 import dataclasses
 
-cwd = Path(__file__).parent
+cwd = Path(__file__).parent.parent
 metadata_files = cwd.rglob("*.tracer-metadata.json")
 
 

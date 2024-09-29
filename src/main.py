@@ -35,10 +35,10 @@ def get_source_dest_pairs(input_path: Path, output_directory_path: Path):
 
 
 def copy_tracer_module(output_directory_path: Path) -> Path:
-    source_tracer_module_path = Path(__file__).parent / "source_tracer_module.py"
-    dest_tracer_module_path = output_directory_path / "__tracer__.py"
+    source_tracer_module_path = Path(__file__).parent / "source_tracer_module"
+    dest_tracer_module_path = output_directory_path / "__tracer__"
 
-    shutil.copy(source_tracer_module_path, dest_tracer_module_path)
+    shutil.copytree(source_tracer_module_path, dest_tracer_module_path)
 
     return dest_tracer_module_path
 
