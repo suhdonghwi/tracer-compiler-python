@@ -3,6 +3,7 @@ import json
 from typing import Any
 from uuid import uuid1
 from dataclasses import dataclass
+import dataclasses
 
 cwd = Path(__file__).parent
 metadata_files = cwd.rglob("*.tracer-metadata.json")
@@ -21,6 +22,13 @@ class NodeInfo:
     end_offset: int
 
 
+class DataclassJSONEncoder(json.JSONEncoder):
+    def default(self, o: object):
+        if dataclasses.is_dataclass(o) and not isinstance(o, type):
+            return dataclasses.asdict(o)
+        return super().default(o)
+
+
 file_mappings: dict[str, FileInfo] = {}
 node_mappings: dict[str, NodeInfo] = {}
 
@@ -37,17 +45,14 @@ for metadata_file_path in metadata_files:
 
 
 node_stack: list[NodeInfo] = []
+trace_result = []
 
 
 def begin_frame(uuid: str):
-    if node_stack:
-        last_node = node_stack[-1]
-        file_info = file_mappings[last_node.file_uuid]
+    node = node_mappings[uuid]
+    caller_node = node_stack[-1] if node_stack else None
 
-        print(
-            f"My caller is '{file_info.original_code[last_node.begin_offset:last_node.end_offset]}'"
-        )
-    pass
+    trace_result.append({"type": "frame_call", "callee": node, "caller": caller_node})
 
 
 def end_frame(uuid: str):
