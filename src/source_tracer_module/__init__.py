@@ -1,25 +1,10 @@
 from pathlib import Path
 import json
 from typing import Any
-from uuid import uuid1
-from dataclasses import dataclass
 import dataclasses
 
-cwd = Path(__file__).parent.parent
-metadata_files = cwd.rglob("*.tracer-metadata.json")
-
-
-@dataclass
-class FileInfo:
-    path: str
-    original_code: str
-
-
-@dataclass
-class NodeInfo:
-    file_uuid: str
-    begin_offset: int
-    end_offset: int
+from .models import NodeInfo
+from .metadata import load_metadata_files
 
 
 class DataclassJSONEncoder(json.JSONEncoder):
@@ -29,19 +14,8 @@ class DataclassJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-file_mappings: dict[str, FileInfo] = {}
-node_mappings: dict[str, NodeInfo] = {}
-
-for metadata_file_path in metadata_files:
-    metadata = json.load(metadata_file_path.open())
-
-    file_uuid = str(uuid1())
-    file_mappings[file_uuid] = FileInfo(metadata["path"], metadata["original_code"])
-
-    for node_id, node_metadata in metadata["node_mappings"].items():
-        node_mappings[node_id] = NodeInfo(
-            file_uuid, node_metadata["begin_offset"], node_metadata["end_offset"]
-        )
+root_path = Path(__file__).parent.parent
+file_mappings, node_mappings = load_metadata_files(root_path)
 
 
 node_stack: list[NodeInfo] = []
