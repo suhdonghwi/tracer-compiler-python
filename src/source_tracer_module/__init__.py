@@ -1,22 +1,11 @@
 from pathlib import Path
-import json
 from typing import Any
-import dataclasses
 
 from .models import NodeInfo
 from .metadata import load_metadata_files
 
-
-class DataclassJSONEncoder(json.JSONEncoder):
-    def default(self, o: object):
-        if dataclasses.is_dataclass(o) and not isinstance(o, type):
-            return dataclasses.asdict(o)
-        return super().default(o)
-
-
 root_path = Path(__file__).parent.parent
 file_mappings, node_mappings = load_metadata_files(root_path)
-
 
 node_stack: list[NodeInfo] = []
 trace_result = []
