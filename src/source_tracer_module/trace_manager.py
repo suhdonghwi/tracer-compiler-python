@@ -24,11 +24,10 @@ class TraceManager:
             if top_node_id == node_id:
                 return top_node_id
             else:
-                # This is a mismatched begin/end node,
-                # which can happen if the expression is `sys.exit()`, for example.
+                # This case can happen if the expression is `sys.exit()`, for example.
+                # We keep popping until we find the matching node.
                 pass
 
-        # If we reach here, it means that the node_id was not found in the stack.
         raise ValueError("Mismatched begin/end node")
 
     def push_frame(self, frame_node_id: str):
