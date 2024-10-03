@@ -1,7 +1,7 @@
 import ast
 
 
-def make_marking_call(method_name: str, *args: ast.AST) -> ast.Call:
+def make_marking_call(method_name: str, *args: ast.expr) -> ast.Call:
     return ast.Call(
         func=ast.Attribute(
             value=ast.Name(id="__tracer__", ctx=ast.Load()),
@@ -13,27 +13,22 @@ def make_marking_call(method_name: str, *args: ast.AST) -> ast.Call:
     )
 
 
-def wrap_with_frame_begin_end(body: list[ast.stmt], *args: ast.AST) -> ast.Try:
+def wrap_statements(
+    nodes: list[ast.stmt], begin_identifier: str, end_identifier: str, *args: ast.expr
+) -> ast.Try:
     return ast.Try(
-        body=[ast.Expr(make_marking_call("begin_frame", *args))] + body,
+        body=[ast.Expr(make_marking_call(begin_identifier, *args))] + nodes,
         handlers=[],
         orelse=[],
-        finalbody=[ast.Expr(make_marking_call("end_frame", *args))],
+        finalbody=[ast.Expr(make_marking_call(end_identifier, *args))],
     )
 
 
-def wrap_with_stmt_begin_end(node: ast.stmt, *args: ast.AST) -> ast.Try:
-    return ast.Try(
-        body=[ast.Expr(make_marking_call("begin_stmt", *args)), node],
-        handlers=[],
-        orelse=[],
-        finalbody=[ast.Expr(make_marking_call("end_stmt", *args))],
-    )
-
-
-def wrap_with_expr_begin_end(node: ast.expr, arg: ast.AST) -> ast.Call:
-    begin_call = make_marking_call("begin_expr", arg)
-    end_call = make_marking_call("end_expr", begin_call, node)
+def wrap_expr(
+    node: ast.expr, begin_identifier: str, end_identifier: str, *args: ast.expr
+) -> ast.Call:
+    begin_call = make_marking_call(begin_identifier, *args)
+    end_call = make_marking_call(end_identifier, begin_call, node)
     return end_call
 
 

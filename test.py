@@ -1,5 +1,2 @@
-import shutil
-import ast
-
-
-print("ADFSDF")
+def hello():
+    pass
