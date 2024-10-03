@@ -1,14 +1,15 @@
 from pathlib import Path
 from typing import Any
 
-from .models import NodeInfo
+
 from .metadata import load_metadata_files
+from .trace_manager import TraceManager
 
 root_path = Path(__file__).parent.parent
 file_mappings, node_mappings = load_metadata_files(root_path)
 
-node_stack: list[NodeInfo] = []
-trace_result = []
+
+trace = TraceManager()
 
 
 def begin_frame(uuid: str):
@@ -24,27 +25,27 @@ def end_frame(uuid: str):
 
 def begin_stmt(uuid: str):
     node = node_mappings[uuid]
-    node_stack.append(node)
+
+    trace.push_node(node)
 
 
 def end_stmt(uuid: str):
-    if node_stack[-1] != node_mappings[uuid]:
-        raise ValueError("Mismatched begin/end stmt")
+    node = node_mappings[uuid]
 
-    node_stack.pop()
+    trace.pop_node(node)
 
 
 def begin_expr(uuid: str):
     node = node_mappings[uuid]
-    node_stack.append(node)
+
+    trace.push_node(node)
 
     return uuid
 
 
 def end_expr(uuid: str, value: Any):
-    if node_stack[-1] != node_mappings[uuid]:
-        raise ValueError("Mismatched begin/end stmt")
+    node = node_mappings[uuid]
 
-    node_stack.pop()
+    trace.pop_node(node)
 
     return value
