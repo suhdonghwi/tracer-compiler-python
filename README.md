@@ -1,3 +1,3 @@
-# tracer-python
+# tracer-compiler-python
 
-Python backend for tracer.
+Python compiler for tracer.
