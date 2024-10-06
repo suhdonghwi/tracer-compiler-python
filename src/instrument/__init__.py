@@ -1,5 +1,6 @@
 import ast
 from pathlib import Path
+from uuid import uuid1
 
 from .ast_transformer import InstrumentationTransformer, InstrumentedNode, NodePosition
 from .module_import_code import make_relative_import_code
@@ -11,11 +12,12 @@ def instrument_code(
     source_code: str,
     source_path: Path,
     destination_path: Path,
-    file_identifier: str,
     tracer_module_path: Path,
 ):
+    file_id = str(uuid1())
+
     raw_ast = ast.parse(source_code)
-    node_position_getter = make_node_position_getter(source_code, file_identifier)
+    node_position_getter = make_node_position_getter(source_code, file_id)
 
     instrumented_ast = InstrumentationTransformer(
         raw_ast,
@@ -27,18 +29,20 @@ def instrument_code(
     )
 
     instrumented_code = tracer_module_import_code + "\n" + ast.unparse(instrumented_ast)
-    metadata_json = make_tracer_metadata_json(source_code, source_path)
+    metadata_json = make_tracer_metadata_json(
+        file_id=file_id, original_code=source_code, path=source_path
+    )
 
     return instrumented_code, metadata_json
 
 
-def make_node_position_getter(source_code: str, file_identifier: str):
+def make_node_position_getter(source_code: str, file_id: str):
     offset_calculator = OffsetCalculator(source_code)
 
     def get_node_position(node: InstrumentedNode) -> NodePosition:
         if isinstance(node, ast.Module):
             return (
-                file_identifier,
+                file_id,
                 0,
                 len(source_code),
             )
@@ -53,7 +57,7 @@ def make_node_position_getter(source_code: str, file_identifier: str):
             )
 
             return (
-                file_identifier,
+                file_id,
                 begin_offset,
                 end_offset,
             )
