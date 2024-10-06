@@ -1,47 +1,19 @@
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
-try:
-    import orjson as json
-
-    orjson_available = True
-except ImportError:
-    import json
-    from .json_encoder import DataclassJSONEncoder
-
-    orjson_available = False
-
-
-from .metadata import load_metadata_files
+from .serialize import serialize_trace
 from .trace_manager import FrameTrace, TraceManager
 
-
 root_path = Path(__file__).parent.parent
-metadata_file_strings = load_metadata_files(root_path)
-
-
 trace = TraceManager()
 
 
-def write_trace_output(frame_trace: FrameTrace):
-    frame_trace_json = cast(
-        str,
-        json.dumps(frame_trace).decode("utf-8")  # type: ignore
-        if orjson_available
-        else json.dumps(frame_trace, cls=DataclassJSONEncoder),  # type: ignore
-    )
+def write_output(trace: FrameTrace):
+    serialized_trace = serialize_trace(trace)
 
-    metadata_list_json = "[" + ",".join(metadata_file_strings) + "]"
-
-    trace_output_json = (
-        "{"
-        '"metadata_list": ' + metadata_list_json + ","
-        '"trace": ' + frame_trace_json + "}"
-    )
-
-    output_file_path = Path(__file__).parent / "trace_output.json"
+    output_file_path = Path(__file__).parent / "trace.json"
     with open(output_file_path, "w") as f:
-        f.write(trace_output_json)
+        f.write(serialized_trace)
 
 
 def begin_module(node_id: str):
@@ -52,7 +24,7 @@ def end_module(node_id: str):
     frame_trace = trace.pop_frame(node_id)
 
     if trace.is_frame_stack_empty():
-        write_trace_output(frame_trace)
+        write_output(frame_trace)
 
 
 def begin_func(node_id: str):
