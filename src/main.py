@@ -73,6 +73,7 @@ if __name__ == "__main__":
             source_code,
             source_path,
             destination_path,
+            source_path.as_posix(),
             tracer_module_path,
         )
 
