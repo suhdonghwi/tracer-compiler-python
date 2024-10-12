@@ -19,11 +19,11 @@ class TraceManager:
     def push_node(self, node_loc: NodeLoc):
         self.node_stack.append(node_loc)
 
-    def pop_node(self, node_pos: NodeLoc):
+    def pop_node(self, node_loc: NodeLoc):
         while self.node_stack:
             top_node_id = self.node_stack.pop()
 
-            if top_node_id == node_pos:
+            if top_node_id == node_loc:
                 return top_node_id
             else:
                 # This case can happen if the expression is `sys.exit()`, for example.
