@@ -8,18 +8,20 @@ from .ast_utils import (
     wrap_statements,
 )
 
-InstrumentedNode = Union[ast.stmt, ast.expr, ast.Module]
-NodePosition = Tuple[str, int, int]
+InstrumentTargetNode = Union[ast.stmt, ast.expr, ast.Module]
+
+Span = Tuple[int, int]
+NodeLocation = Tuple[str, Span]
 
 
 class InstrumentationTransformer(ast.NodeTransformer):
     def __init__(
         self,
         target_ast: ast.Module,
-        node_position_getter: Callable[[InstrumentedNode], NodePosition],
+        node_location_getter: Callable[[InstrumentTargetNode], NodeLocation],
     ):
         self.target_ast = target_ast
-        self.node_position_getter = node_position_getter
+        self.node_location_getter = node_location_getter
 
     def transform(self) -> ast.Module:
         return ast.fix_missing_locations(self.visit(self.target_ast))
@@ -40,15 +42,7 @@ class InstrumentationTransformer(ast.NodeTransformer):
         if not isinstance(node, (ast.stmt, ast.expr, ast.Module)):
             return self.generic_visit(node)
 
-        file_identifier, begin_offset, end_offset = self.node_position_getter(node)
-        node_position_node = ast.Tuple(
-            elts=[
-                ast.Constant(value=file_identifier),
-                ast.Constant(value=begin_offset),
-                ast.Constant(value=end_offset),
-            ],
-            ctx=ast.Load(),
-        )
+        node_location_node = make_node_location_node(self.node_location_getter(node))
 
         if isinstance(node, ast.FunctionDef):
             transformed_body = list(map(self.visit, node.body))
@@ -57,7 +51,7 @@ class InstrumentationTransformer(ast.NodeTransformer):
                     transformed_body,
                     "begin_func",
                     "end_func",
-                    node_position_node,
+                    node_location_node,
                 )
             ]
 
@@ -74,7 +68,7 @@ class InstrumentationTransformer(ast.NodeTransformer):
             if node.value is not None:  # type: ignore
                 node.value = self.visit(node.value)
 
-            return wrap_statements([node], "begin_stmt", "end_stmt", node_position_node)
+            return wrap_statements([node], "begin_stmt", "end_stmt", node_location_node)
 
         self.generic_visit(node)
 
@@ -84,15 +78,32 @@ class InstrumentationTransformer(ast.NodeTransformer):
         if isinstance(node, ast.Module):
             node.body = [
                 wrap_statements(
-                    node.body, "begin_module", "end_module", node_position_node
+                    node.body, "begin_module", "end_module", node_location_node
                 )
             ]
             return node
 
         elif isinstance(node, ast.stmt) and is_invoking_stmt(node):
-            return wrap_statements([node], "begin_stmt", "end_stmt", node_position_node)
+            return wrap_statements([node], "begin_stmt", "end_stmt", node_location_node)
 
         elif isinstance(node, ast.expr) and is_invoking_expr(node):
-            return wrap_expr(node, "begin_expr", "end_expr", node_position_node)
+            return wrap_expr(node, "begin_expr", "end_expr", node_location_node)
 
         return node
+
+
+def make_node_location_node(node_location: NodeLocation) -> ast.Tuple:
+    file_identifier, (begin_offset, end_offset) = node_location
+
+    return ast.Tuple(
+        elts=[
+            ast.Constant(value=file_identifier),
+            ast.Tuple(
+                elts=[
+                    ast.Constant(value=begin_offset),
+                    ast.Constant(value=end_offset),
+                ]
+            ),
+        ],
+        ctx=ast.Load(),
+    )

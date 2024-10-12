@@ -2,7 +2,11 @@ import ast
 from pathlib import Path
 from uuid import uuid1
 
-from .ast_transformer import InstrumentationTransformer, InstrumentedNode, NodePosition
+from .ast_transformer import (
+    InstrumentationTransformer,
+    InstrumentTargetNode,
+    NodeLocation,
+)
 from .module_import_code import make_relative_import_code
 from .offset_calculator import OffsetCalculator
 from .tracer_metadata import make_tracer_metadata_json
@@ -17,11 +21,11 @@ def instrument_code(
     file_id = str(uuid1())
 
     raw_ast = ast.parse(source_code)
-    node_position_getter = make_node_position_getter(source_code, file_id)
+    node_location_getter = make_node_location_getter(source_code, file_id)
 
     instrumented_ast = InstrumentationTransformer(
         raw_ast,
-        node_position_getter,
+        node_location_getter,
     ).transform()
 
     tracer_module_import_code = make_relative_import_code(
@@ -36,15 +40,17 @@ def instrument_code(
     return instrumented_code, metadata_json
 
 
-def make_node_position_getter(source_code: str, file_id: str):
+def make_node_location_getter(source_code: str, file_id: str):
     offset_calculator = OffsetCalculator(source_code)
 
-    def get_node_position(node: InstrumentedNode) -> NodePosition:
+    def get_node_location(node: InstrumentTargetNode) -> NodeLocation:
         if isinstance(node, ast.Module):
             return (
                 file_id,
-                0,
-                len(source_code),
+                (
+                    0,
+                    len(source_code),
+                ),
             )
         else:
             if node.end_lineno is None or node.end_col_offset is None:
@@ -58,8 +64,10 @@ def make_node_position_getter(source_code: str, file_id: str):
 
             return (
                 file_id,
-                begin_offset,
-                end_offset,
+                (
+                    begin_offset,
+                    end_offset,
+                ),
             )
 
-    return get_node_position
+    return get_node_location
