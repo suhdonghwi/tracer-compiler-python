@@ -4,7 +4,7 @@ import ast
 def make_marking_call(method_name: str, *args: ast.expr) -> ast.Call:
     return ast.Call(
         func=ast.Attribute(
-            value=ast.Name(id="__tracer__", ctx=ast.Load()),
+            value=ast.Name(id="tracer_runtime", ctx=ast.Load()),
             attr=method_name,
             ctx=ast.Load(),
         ),

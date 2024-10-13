@@ -11,7 +11,7 @@ from .ast_utils import (
 InstrumentTargetNode = Union[ast.stmt, ast.expr, ast.Module]
 
 Span = Tuple[int, int]
-NodeLocation = Tuple[str, Span]
+NodeLocation = Tuple[str, int, int]
 
 
 class InstrumentationTransformer(ast.NodeTransformer):
@@ -93,17 +93,13 @@ class InstrumentationTransformer(ast.NodeTransformer):
 
 
 def make_node_location_node(node_location: NodeLocation) -> ast.Tuple:
-    file_identifier, (begin_offset, end_offset) = node_location
+    file_identifier, begin_offset, end_offset = node_location
 
     return ast.Tuple(
         elts=[
             ast.Constant(value=file_identifier),
-            ast.Tuple(
-                elts=[
-                    ast.Constant(value=begin_offset),
-                    ast.Constant(value=end_offset),
-                ]
-            ),
+            ast.Constant(value=begin_offset),
+            ast.Constant(value=end_offset),
         ],
         ctx=ast.Load(),
     )

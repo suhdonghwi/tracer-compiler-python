@@ -72,8 +72,6 @@ if __name__ == "__main__":
         instrumented_code, metadata_json = instrument_code(
             source_code,
             source_path,
-            destination_path,
-            tracer_module_path,
         )
 
         write_to_ensured_path(destination_path, instrumented_code)
