@@ -18,7 +18,7 @@ class FrameTrace(Trace):
 class TraceManager:
     def __init__(self):
         self.node_stack: list[NodeLoc] = []
-        self.frame_stack: list[list[Any]] = []
+        self.frame_stack: list[Any] = []
 
     def push_node(self, node_loc: NodeLoc):
         self.node_stack.append(node_loc)
@@ -37,19 +37,15 @@ class TraceManager:
         raise ValueError("Mismatched begin/end node")
 
     def push_frame(self, frame_node_loc: NodeLoc):
-        self.frame_stack.append([frame_node_loc])
+        self.frame_stack.append("start_frame")
+        self.frame_stack.append(frame_node_loc)
 
     def pop_frame(self, frame_node_loc: NodeLoc):
-        # if self.frame_stack[-1][0] != frame_node_loc:
-        #     raise ValueError("Mismatched begin/end frame")
+        caller_node_span = self.node_stack[-1][1] if self.node_stack else None
 
-        popped_frame_trace = self.frame_stack.pop()
-
-        if self.frame_stack:
-            if caller_node_loc := self.node_stack[-1]:
-                self.frame_stack[-1].extend([caller_node_loc[1], popped_frame_trace])
-
-        return popped_frame_trace
+        self.frame_stack.append("end_frame")
+        self.frame_stack.append(frame_node_loc)
+        self.frame_stack.append(caller_node_span)
 
     def is_frame_stack_empty(self):
-        return len(self.frame_stack) == 0
+        return len(self.node_stack) == 0
