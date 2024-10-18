@@ -1,4 +1,3 @@
-import shutil
 import sys
 from pathlib import Path
 
@@ -34,15 +33,6 @@ def get_source_dest_pairs(input_path: Path, output_directory_path: Path):
     return source_dest_pairs
 
 
-def copy_tracer_module(output_directory_path: Path) -> Path:
-    source_tracer_module_path = Path(__file__).parent / "source_tracer_module"
-    dest_tracer_module_path = output_directory_path / "__tracer__"
-
-    shutil.copytree(source_tracer_module_path, dest_tracer_module_path)
-
-    return dest_tracer_module_path
-
-
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: script.py <input_path> <output_directory>")
@@ -60,7 +50,6 @@ if __name__ == "__main__":
     print(f"Found {len(source_dest_pairs)} source files")
 
     clear_directory(output_directory_path)
-    tracer_module_path = copy_tracer_module(output_directory_path)
 
     for source_path, destination_path in source_dest_pairs:
         if source_path.suffix != ".py":
