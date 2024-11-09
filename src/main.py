@@ -60,12 +60,13 @@ if __name__ == "__main__":
         print(f"Processing {source_path}")
 
         source_code = source_path.read_text()
-
         file_id = str(uuid1())
+
         instrumented_code = instrument_code(
             source_code,
             file_id,
         )
+
         metadata_json = make_tracer_metadata_json(
             file_id=file_id, original_code=source_code, path=source_path
         )
