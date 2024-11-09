@@ -1,6 +1,4 @@
 import ast
-from pathlib import Path
-from uuid import uuid1
 
 from .ast_transformer import (
     InstrumentationTransformer,
@@ -9,15 +7,12 @@ from .ast_transformer import (
 )
 from .module_import_code import make_runtime_module_import_code
 from .offset_calculator import OffsetCalculator
-from .tracer_metadata import make_tracer_metadata_json
 
 
 def instrument_code(
     source_code: str,
-    source_path: Path,
+    file_id: str,
 ):
-    file_id = str(uuid1())
-
     raw_ast = ast.parse(source_code)
     node_location_getter = make_node_location_getter(source_code, file_id)
 
@@ -31,11 +26,8 @@ def instrument_code(
     instrumented_code = (
         runtime_module_import_code + "\n" + ast.unparse(instrumented_ast)
     )
-    metadata_json = make_tracer_metadata_json(
-        file_id=file_id, original_code=source_code, path=source_path
-    )
 
-    return instrumented_code, metadata_json
+    return instrumented_code
 
 
 def make_node_location_getter(source_code: str, file_id: str):
