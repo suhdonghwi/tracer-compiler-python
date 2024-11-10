@@ -8,7 +8,7 @@ def collect_metadata_files(directory: Path) -> Dict[str, Path]:
     metadata_files: Dict[str, Any] = {}
 
     # Find all files ending with .tracer-metadata.json
-    for metadata_file in directory.rglob("*.tracer-metadata.json"):
+    for metadata_file in directory.rglob("*.tracer_metadata.json"):
         # Load the content of each file and extract the file_id
         with metadata_file.open("r", encoding="utf-8") as f:
             content: Dict[str, Any] = json.load(f)
@@ -32,13 +32,16 @@ def main() -> None:
         trace_content = trace_f.read()
 
     # Prepare the final output structure using string concatenation
-    metadata_files_json = json.dumps({
-        "metadata_files": {
-            file_id: content for file_id, content in metadata_files.items()
-        }
-    }, indent=2)
+    metadata_files_json = json.dumps(
+        {
+            "metadata_files": {
+                file_id: content for file_id, content in metadata_files.items()
+            }
+        },
+        indent=2,
+    )
 
-    final_output = f"{metadata_files_json[:-2]},\n  \"trace\": {trace_content}\n}}"
+    final_output = f'{metadata_files_json[:-2]},\n  "trace": {trace_content}\n}}'
 
     # Write the final output to test-output.json
     with output_file.open("w", encoding="utf-8") as f:

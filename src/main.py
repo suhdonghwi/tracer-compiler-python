@@ -68,7 +68,7 @@ if __name__ == "__main__":
         )
 
         metadata_json = make_tracer_metadata_json(
-            file_id=file_id, original_code=source_code, path=source_path
+            file_id=file_id, source_code=source_code, path=source_path
         )
 
         write_to_ensured_path(destination_path, instrumented_code)
