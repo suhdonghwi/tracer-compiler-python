@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import uuid1
 
 from instrument import instrument_code
-from tracer_metadata import make_tracer_metadata_json
+from source_file_metadata import make_source_file_metadata_json
 from utils.file_processing import (
     clear_directory,
     get_files_inside_directory,
@@ -67,11 +67,11 @@ if __name__ == "__main__":
             file_id,
         )
 
-        metadata_json = make_tracer_metadata_json(
+        metadata_json = make_source_file_metadata_json(
             file_id=file_id, source_code=source_code, path=source_path
         )
 
         write_to_ensured_path(destination_path, instrumented_code)
         write_to_ensured_path(
-            destination_path.with_suffix(".tracer_metadata.json"), metadata_json
+            destination_path.with_suffix(".source_file_metadata.json"), metadata_json
         )

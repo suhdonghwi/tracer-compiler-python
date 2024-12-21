@@ -1,20 +1,21 @@
 from pathlib import Path
+from typing import Any
 import json
 
 # Define the base directory and output file
 base_directory = Path("./dist")
-output_file = base_directory / "metadata_files.json"
+output_file = base_directory / "source_file_metadata_list.json"
 
 # List to store the aggregated JSON data
-aggregated_data = []
+aggregated_data: list[Any] = []
 
 try:
     # Check if the base directory exists
     if not base_directory.exists():
         print(f"Directory {base_directory} does not exist.")
     else:
-        # Recursively find all files ending with ".tracer_metadata.json"
-        tracer_files = base_directory.rglob("*.tracer_metadata.json")
+        # Recursively find all files ending with ".source_file_metadata.json"
+        tracer_files = base_directory.rglob("*.source_file_metadata.json")
 
         for file_path in tracer_files:
             try:
