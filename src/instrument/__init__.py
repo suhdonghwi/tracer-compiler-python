@@ -1,10 +1,6 @@
 import ast
 
-from .ast_transformer import (
-    InstrumentationTransformer,
-    InstrumentTargetNode,
-    NodeLocation,
-)
+from .ast_transformer import InstrumentationTransformer, InstrumentTargetNode, Span
 from .module_import_code import make_runtime_module_import_code
 from .offset_calculator import OffsetCalculator
 
@@ -14,11 +10,12 @@ def instrument_code(
     file_id: str,
 ):
     raw_ast = ast.parse(source_code)
-    node_location_getter = make_node_location_getter(source_code, file_id)
+    node_span_getter = make_node_span_getter(source_code)
 
     instrumented_ast = InstrumentationTransformer(
         raw_ast,
-        node_location_getter,
+        file_id,
+        node_span_getter,
     ).transform()
 
     runtime_module_import_code = make_runtime_module_import_code()
@@ -30,13 +27,12 @@ def instrument_code(
     return instrumented_code
 
 
-def make_node_location_getter(source_code: str, file_id: str):
+def make_node_span_getter(source_code: str):
     offset_calculator = OffsetCalculator(source_code)
 
-    def get_node_location(node: InstrumentTargetNode) -> NodeLocation:
+    def get_node_span(node: InstrumentTargetNode) -> Span:
         if isinstance(node, ast.Module):
             return (
-                file_id,
                 0,
                 len(source_code),
             )
@@ -51,9 +47,8 @@ def make_node_location_getter(source_code: str, file_id: str):
             )
 
             return (
-                file_id,
                 begin_offset,
                 end_offset,
             )
 
-    return get_node_location
+    return get_node_span
