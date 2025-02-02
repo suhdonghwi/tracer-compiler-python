@@ -4,5 +4,5 @@ compile input:
 run input:
   -(cd dist && python {{input}})
   python aggregate.py
-  cp dist/execution_log.json ../tracer-web/public/execution_log.json
+  cp dist/eval_event_log.json ../tracer-web/public/eval_event_log.json
   cp dist/source_file_metadata_list.json ../tracer-web/public/source_file_metadata_list.json
