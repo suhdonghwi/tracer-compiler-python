@@ -6,14 +6,14 @@ from .ast_transformer import (
     InstrumentTargetNode,
     SourceLocation,
 )
-from .module_import_code import make_runtime_module_import_code
+from .initialization_code import make_initialization_code
 from .offset_calculator import OffsetCalculator
 
 
 def instrument_code(
     source_code: str,
     file_id: str,
-):
+) -> str:
     raw_ast = ast.parse(source_code)
     source_location_getter = make_source_location_getter(source_code, file_id)
 
@@ -21,7 +21,7 @@ def instrument_code(
         raw_ast, source_location_getter
     ).transform()
 
-    runtime_module_import_code = make_runtime_module_import_code()
+    runtime_module_import_code = make_initialization_code()
 
     instrumented_code = (
         runtime_module_import_code + "\n" + ast.unparse(instrumented_ast)
